@@ -62,7 +62,7 @@ body {
     z-index: 2;
 }
 </style>
-    <link rel="modulepreload" href="./fallcore-a4bf7d46044c46bb.js" crossorigin="anonymous" integrity="sha384-n40wSPGwlmMShNA3YpcMMaFnBhjqXEZmWB9Pq8tG1BQY+s5d2dDH7EFcJxHD4dNy"><link rel="preload" href="./fallcore-f2d196de8e2e3ffe_bg.wasm" crossorigin="anonymous" integrity="sha384-MJ8SdaqbPipPSB920cjLvaLkRzR6GnI86j3ScG0oQcsJPO2ULeUsi0oWkhRoEcsU" as="fetch" type="application/wasm"></head>
+    <link rel="modulepreload" href="./fallcore-a4bf7d46044c46bb.js" crossorigin="anonymous" integrity="sha384-n40wSPGwlmMShNA3YpcMMaFnBhjqXEZmWB9Pq8tG1BQY+s5d2dDH7EFcJxHD4dNy"><link rel="preload" href="./fallcore-b74bbb4d13f2d86a_bg.wasm" crossorigin="anonymous" integrity="sha384-KjF4bbdN5FAr8dXZlwvugQqYr+NO1rL7u+sM0tDPwkeFzarSlYlF9e9Kwtk2YE7p" as="fetch" type="application/wasm"></head>
     <body>
         <script>// Insert hack to make sound autoplay on Chrome as soon as the user interacts with the tab:
 // https://developers.google.com/web/updates/2018/11/web-audio-autoplay#moving-forward
@@ -136,7 +136,7 @@ body {
     
 <script type="module">
 import init, * as bindings from './fallcore-a4bf7d46044c46bb.js';
-const wasm = await init({ module_or_path: './fallcore-f2d196de8e2e3ffe_bg.wasm' });
+const wasm = await init({ module_or_path: './fallcore-b74bbb4d13f2d86a_bg.wasm' });
 
 
 window.wasmBindings = bindings;
