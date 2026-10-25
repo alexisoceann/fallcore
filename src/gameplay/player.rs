@@ -84,7 +84,7 @@ fn move_player(
         let throttle = if actions.accelerate { 1.0 } else if actions.brake { -0.5 } else { 0.0 };
         if throttle != 0.0 {
             let forward = transform.rotation * Vec3::NEG_Z;
-            forces.apply_force(forward * throttle * PLAYER_SPEED * 6.0); // tune
+            forces.apply_force(forward * throttle * PLAYER_SPEED * 7.0); // tune
         }
 
         // Drive yaw directly instead of applying torque: torque against a box
