@@ -19,7 +19,7 @@ fn spawn_scene(
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::new(200.0, 0.5, 200.0))),
         MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgb(0.35, 0.4, 0.35),
+            base_color: Color::oklch(0.3101, 0.1011, 340.94),
             perceptual_roughness: 1.0,
             ..default()
         })),
@@ -31,7 +31,7 @@ fn spawn_scene(
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::new(2., 2., 2.))),
         MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgb(0.35, 0.4, 0.35),
+            base_color: Color::oklch(0.5294, 0.2111, 13.76),
             perceptual_roughness: 1.0,
             ..default()
         })),
@@ -43,7 +43,31 @@ fn spawn_scene(
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::new(2., 2., 2.))),
         MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgb(0.35, 0.4, 0.35),
+            base_color: Color::oklch(0.6098, 0.1258, 68.82),
+            perceptual_roughness: 1.0,
+            ..default()
+        })),
+        Transform::from_translation(Vec3::new(8.0, 6., 8.0)),
+        RigidBody::Dynamic,
+        Collider::sphere(1.),
+        DespawnOnExit(GameState::Playing),
+    ));
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::new(2., 2., 2.))),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: Color::oklch(0.4467, 0.2196, 274.24),
+            perceptual_roughness: 1.0,
+            ..default()
+        })),
+        Transform::from_translation(Vec3::new(-8.0, 6., 8.0)),
+        RigidBody::Dynamic,
+        Collider::sphere(1.),
+        DespawnOnExit(GameState::Playing),
+    ));
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::new(2., 2., 2.))),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: Color::oklch(0.7147, 0.2072, 158.82),
             perceptual_roughness: 1.0,
             ..default()
         })),
