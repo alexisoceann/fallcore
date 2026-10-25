@@ -1,8 +1,10 @@
 use crate::GameState;
 use crate::gameplay::player::{Player, PlayerEntities, spawn_players};
-use bevy::prelude::*;
-use bevy::camera::Viewport;
-use bevy::window::WindowResized;
+use bevy::{
+    prelude::*,
+    camera::Viewport,
+    window::WindowResized,
+};
 
 pub struct CameraPlugin;
 
@@ -52,6 +54,7 @@ fn spawn_game_cameras(mut commands: Commands, players: Res<PlayerEntities>, wind
                 order: slot as isize,
                 ..default()
             },
+            // AtmosphereSettings::default(),
             Msaa::Off,
             Transform::from_translation(CAMERA_OFFSET).looking_at(Vec3::ZERO, Vec3::Y),
             GameCamera {
