@@ -2,11 +2,11 @@
 
 mod gameplay;
 mod loading;
-mod menu;
+mod menus;
 
 use crate::gameplay::GameplayPlugin;
 use crate::loading::LoadingPlugin;
-use crate::menu::MenuPlugin;
+use crate::menus::MenusPlugin;
 
 use bevy::app::App;
 #[cfg(debug_assertions)]
@@ -39,7 +39,7 @@ pub struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<GameState>()
-            .add_plugins((LoadingPlugin, MenuPlugin, GameplayPlugin));
+            .add_plugins((LoadingPlugin, MenusPlugin, GameplayPlugin));
 
         #[cfg(debug_assertions)]
         {

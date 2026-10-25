@@ -1,65 +1,128 @@
-use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
+use bevy_enhanced_input::prelude::*;
+use std::collections::HashMap;
 
 use crate::GameState;
-use crate::gameplay::actions::game_control::{GameControl, get_movement};
-use crate::gameplay::player::Player;
+use crate::menus::InputSource;
+use game_control::*;
 
 mod game_control;
 
-pub const FOLLOW_EPSILON: f32 = 5.;
-
 pub struct ActionsPlugin;
 
-// This plugin listens for keyboard input and converts the input into Actions.
-// Actions can then be used as a resource in other systems to act on the player input.
 impl Plugin for ActionsPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<Actions>().add_systems(
-            Update,
-            set_movement_actions.run_if(in_state(GameState::Playing)),
-        );
+        app.add_plugins(EnhancedInputPlugin)
+            .add_input_context::<PlayerInput>()
+            .add_systems(
+                Update,
+                read_vehicle_actions.run_if(in_state(GameState::Playing)),
+            );
     }
 }
 
-#[derive(Default, Resource)]
-pub struct Actions {
-    pub player_movement: Option<Vec2>,
+/// One player's current control inputs, written each frame from their own
+/// keyboard scheme's bound actions (see [`player_input_scene`]).
+#[derive(Component, Default, Clone)]
+pub struct VehicleControls {
+    pub steering: f32,
+    pub accelerate: bool,
+    pub brake: bool,
+    pub activate_powerup: bool,
 }
 
-pub fn set_movement_actions(
-    mut actions: ResMut<Actions>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-    touch_input: Res<Touches>,
-    player: Query<&Transform, With<Player>>,
-    camera: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
-) -> Result {
-    let mut player_movement = Vec2::new(
-        get_movement(GameControl::Right, &keyboard_input)
-            - get_movement(GameControl::Left, &keyboard_input),
-        get_movement(GameControl::Up, &keyboard_input)
-            - get_movement(GameControl::Down, &keyboard_input),
-    );
+/// The input context and bindings for one player's keyboard scheme (see
+/// [`InputSource`]). Compose this into a player's entity (see
+/// `gameplay::player::spawn_players`) alongside their vehicle components
+/// and a [`VehicleControls`].
+pub fn player_input_scene(source: InputSource) -> impl Scene {
+    let (left, right, accelerate, brake, powerup) = bindings_for(source);
 
-    if let Some(touch_position) = touch_input.first_pressed_position()
-        && let Ok((camera, camera_transform)) = camera.single()
-        && let Ok(touch_position) = camera.viewport_to_world_2d(camera_transform, touch_position)
-    {
-        let diff = touch_position
-            - player
-                .single()
-                .map(|transform| transform.translation.xy())
-                .unwrap_or(touch_position);
-        if diff.length() > FOLLOW_EPSILON {
-            player_movement = diff.normalize();
+    bsn! {
+        PlayerInput
+        Actions<PlayerInput> [
+            Action::<SteerLeft>::new()
+            Bindings [
+                left
+            ]
+            --
+            Action::<SteerRight>::new()
+            Bindings [
+                right
+            ]
+            --
+            Action::<Accelerate>::new()
+            ~Press::new(1.0)
+            Bindings [
+                accelerate
+            ]
+            --
+            Action::<Brake>::new()
+            ~Press::new(1.0)
+            Bindings [
+                brake
+            ]
+            --
+            Action::<ActivatePowerup>::new()
+            ~Press::new(1.0)
+            Bindings [
+                powerup
+            ]
+        ]
+    }
+}
+
+/// `(left, right, accelerate, brake, powerup)` bindings for one input source.
+fn bindings_for(source: InputSource) -> (Binding, Binding, Binding, Binding, Binding) {
+    let InputSource::Keyboard(scheme) = source;
+    let (left, right, accelerate, brake, powerup) = scheme.keys();
+    (
+        Binding::from(left),
+        Binding::from(right),
+        Binding::from(accelerate),
+        Binding::from(brake),
+        Binding::from(powerup),
+    )
+}
+
+/// Reads every player's bound actions and writes the result into their own
+/// [`VehicleControls`]. Each player has their own `PlayerInput` context
+/// entity (which is their vehicle entity itself), so action entities are
+/// matched back to their player via the [`ActionOf`] relationship.
+fn read_vehicle_actions(
+    steer_left: Query<(&Action<SteerLeft>, &ActionOf<PlayerInput>)>,
+    steer_right: Query<(&Action<SteerRight>, &ActionOf<PlayerInput>)>,
+    accelerate: Query<(&Action<Accelerate>, &ActionOf<PlayerInput>)>,
+    brake: Query<(&Action<Brake>, &ActionOf<PlayerInput>)>,
+    powerup: Query<(&Action<ActivatePowerup>, &ActionOf<PlayerInput>)>,
+    mut vehicles: Query<&mut VehicleControls>,
+) {
+    let mut left_by_player = HashMap::new();
+    for (value, context) in &steer_left {
+        left_by_player.insert(**context, **value);
+    }
+
+    for (value, context) in &steer_right {
+        let player = **context;
+        let left = left_by_player.get(&player).copied().unwrap_or(0.0);
+        if let Ok(mut controls) = vehicles.get_mut(player) {
+            controls.steering = (**value - left).clamp(-1.0, 1.0);
         }
     }
 
-    if player_movement != Vec2::ZERO {
-        actions.player_movement = Some(player_movement.normalize());
-    } else {
-        actions.player_movement = None;
+    for (value, context) in &accelerate {
+        if let Ok(mut controls) = vehicles.get_mut(**context) {
+            controls.accelerate = **value;
+        }
     }
-
-    Ok(())
+    for (value, context) in &brake {
+        if let Ok(mut controls) = vehicles.get_mut(**context) {
+            controls.brake = **value;
+        }
+    }
+    for (value, context) in &powerup {
+        if let Ok(mut controls) = vehicles.get_mut(**context) {
+            controls.activate_powerup = **value;
+        }
+    }
 }

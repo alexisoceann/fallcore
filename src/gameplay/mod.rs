@@ -1,17 +1,20 @@
 mod actions;
 mod audio;
-mod collision;
+mod camera;
 mod finish_areas;
-mod game_object;
+mod level;
 mod player;
+mod physics;
 
 use bevy::prelude::*;
 
 use actions::ActionsPlugin;
 use audio::InternalAudioPlugin;
-use finish_areas::FinishAreaPlugin;
-use game_object::GameObjectPlugin;
+use camera::CameraPlugin;
+// use finish_areas::FinishAreaPlugin;
+use level::LevelPlugin;
 use player::PlayerPlugin;
+use physics::PhysicsPlugin;
 
 pub struct GameplayPlugin;
 
@@ -20,9 +23,11 @@ impl Plugin for GameplayPlugin {
         app.add_plugins((
             ActionsPlugin,
             InternalAudioPlugin,
-            FinishAreaPlugin,
-            GameObjectPlugin,
+            CameraPlugin,
+            // FinishAreaPlugin,
+            LevelPlugin,
             PlayerPlugin,
+            PhysicsPlugin,
         ));
     }
 }

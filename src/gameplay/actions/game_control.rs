@@ -1,31 +1,28 @@
-use bevy::prelude::{ButtonInput, KeyCode, Res};
+use bevy::prelude::*;
+use bevy_enhanced_input::prelude::*;
 
-pub enum GameControl {
-    Up,
-    Down,
-    Left,
-    Right,
-}
+/// Input context for one player's vehicle. Each joined player gets their own
+/// entity with this component, bound to one of the fixed keyboard schemes
+/// (see `actions::player_input_scene`).
+#[derive(Component, Default, Clone)]
+pub struct PlayerInput;
 
-impl GameControl {
-    pub fn pressed(&self, keyboard_input: &Res<ButtonInput<KeyCode>>) -> bool {
-        match self {
-            GameControl::Up => {
-                keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp)
-            }
-            GameControl::Down => {
-                keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown)
-            }
-            GameControl::Left => {
-                keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft)
-            }
-            GameControl::Right => {
-                keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight)
-            }
-        }
-    }
-}
+#[derive(InputAction)]
+#[action_output(f32)]
+pub struct SteerLeft;
 
-pub fn get_movement(control: GameControl, input: &Res<ButtonInput<KeyCode>>) -> f32 {
-    if control.pressed(input) { 1.0 } else { 0.0 }
-}
+#[derive(InputAction)]
+#[action_output(f32)]
+pub struct SteerRight;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct Accelerate;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct Brake;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct ActivatePowerup;
