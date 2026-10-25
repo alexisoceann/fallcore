@@ -37,7 +37,7 @@ fn spawn_scene(
         })),
         Transform::from_translation(Vec3::new(0.0, 6., 8.0)),
         RigidBody::Dynamic,
-        Collider::cuboid(2., 2., 2.),
+        Collider::sphere(1.),
         DespawnOnExit(GameState::Playing),
     ));
     commands.spawn((
@@ -49,7 +49,7 @@ fn spawn_scene(
         })),
         Transform::from_translation(Vec3::new(0.0, 6., -8.0)),
         RigidBody::Dynamic,
-        Collider::cuboid(2., 2., 2.),
+        Collider::sphere(1.),
         DespawnOnExit(GameState::Playing),
     ));
     commands.spawn((

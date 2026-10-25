@@ -32,7 +32,7 @@ fn spawn_game_camera(mut commands: Commands) {
     ));
 }
 
-/// Moves the camera behind the player.
+/// Moves the camera behind the player, following its rotation.
 fn follow_player(
     time: Res<Time>,
     // The queries are disjoint, because both of them access the transform.
@@ -45,8 +45,18 @@ fn follow_player(
     let Ok(mut camera_transform) = camera_query.single_mut() else {
         return;
     };
-    let target = player_transform.translation + CAMERA_OFFSET;
+
+    // Rotate the offset with the player so the camera stays behind it.
+    let rotated_offset = player_transform.rotation * CAMERA_OFFSET;
+    let target = player_transform.translation + rotated_offset;
+
+    // Smoothly follow the target position.
     let factor = 1.0 - (-CAMERA_FOLLOW_SPEED * time.delta_secs()).exp();
     camera_transform.translation = camera_transform.translation.lerp(target, factor);
-    camera_transform.look_at(player_transform.translation, Vec3::Y);
+
+    // Look toward a point ahead of the player, rather than its center.
+    let forward = player_transform.rotation * Vec3::NEG_Z;
+    let look_target = player_transform.translation + forward * 3.0 + Vec3::Y * 0.5;
+
+    camera_transform.look_at(look_target, Vec3::Y);
 }

@@ -1,5 +1,5 @@
 use crate::GameState;
-use crate::gameplay::actions::{Actions, set_movement_actions};
+use crate::gameplay::actions::{VehicleControls, set_movement_actions};
 use crate::gameplay::player::Player;
 use crate::loading::AudioAssets;
 use bevy::prelude::*;
@@ -90,7 +90,7 @@ fn setup_spatial_audio(
 }
 
 fn control_flying_sound(
-    actions: Res<Actions>,
+    actions: Res<VehicleControls>,
     audio: Res<FlyingAudio>,
     mut audio_instances: ResMut<Assets<AudioInstance>>,
 ) {

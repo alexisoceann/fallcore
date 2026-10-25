@@ -1,69 +1,123 @@
-use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
+use bevy_enhanced_input::prelude::*;
 
 use crate::GameState;
-use crate::gameplay::actions::game_control::{GameControl, get_movement};
-use crate::gameplay::player::Player;
+use game_control::*;
 
 mod game_control;
 
-/// Minimum distance (world units) between the player and the touch position
-/// to trigger a movement.
-pub const FOLLOW_EPSILON: f32 = 0.4;
-
 pub struct ActionsPlugin;
 
-// This plugin listens for keyboard input and converts the input into Actions.
-// Actions can then be used as a resource in other systems to act on the player input.
 impl Plugin for ActionsPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<Actions>().add_systems(
-            Update,
-            set_movement_actions.run_if(in_state(GameState::Playing)),
-        );
+        app.add_plugins(EnhancedInputPlugin)
+            .add_input_context::<PlayerInput>()
+            .init_resource::<VehicleControls>()
+            .add_systems(Startup, set_movement_actions)
+            .add_systems(
+                Update,
+                read_vehicle_actions.run_if(in_state(GameState::Playing)),
+            );
     }
 }
 
 #[derive(Default, Resource)]
-pub struct Actions {
+pub struct VehicleControls {
     pub player_movement: Option<Vec2>,
+    pub steering: f32,
+    pub accelerate: bool,
+    pub brake: bool,
+    pub activate_powerup: bool,
 }
 
-pub fn set_movement_actions(
-    mut actions: ResMut<Actions>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-    touch_input: Res<Touches>,
-    player: Query<&Transform, With<Player>>,
-    camera: Query<(&Camera, &GlobalTransform), With<Camera3d>>,
-) -> Result {
-    let mut player_movement = Vec2::new(
-        get_movement(GameControl::Right, &keyboard_input)
-            - get_movement(GameControl::Left, &keyboard_input),
-        get_movement(GameControl::Up, &keyboard_input)
-            - get_movement(GameControl::Down, &keyboard_input),
-    );
+pub fn set_movement_actions(mut commands: Commands) {
+    commands.spawn_scene(bsn! {
+        PlayerInput
 
-    if let Some(touch_position) = touch_input.first_pressed_position()
-        && let Ok((camera, camera_transform)) = camera.single()
-        && let Ok(ray) = camera.viewport_to_world(camera_transform, touch_position)
-        && let Some(target) =
-            ray.plane_intersection_point(Vec3::ZERO, InfinitePlane3d::new(Vec3::Y))
-    {
-        let diff = target.xz()
-            - player
-                .single()
-                .map(|transform| transform.translation.xz())
-                .unwrap_or(target.xz());
-        if diff.length() > FOLLOW_EPSILON {
-            player_movement = diff.normalize();
-        }
-    }
+        Actions<PlayerInput> [
+            // Menu navigation
+            Action::<MoveUp>::new()
+            ~Press::new(1.0)
+            Bindings [
+                Binding(KeyCode::ArrowUp)
+            ]
+            --
+            Action::<MoveDown>::new()
+            ~Press::new(1.0)
+            Bindings [
+                Binding(KeyCode::ArrowDown)
+            ]
+            --
+            Action::<MoveLeft>::new()
+            ~Press::new(1.0)
+            Bindings [
+                Binding(KeyCode::ArrowLeft)
+            ]
+            --
+            Action::<MoveRight>::new()
+            ~Press::new(1.0)
+            Bindings [
+                Binding(KeyCode::ArrowRight)
+            ]
+            --
 
-    if player_movement != Vec2::ZERO {
-        actions.player_movement = Some(player_movement.normalize());
-    } else {
-        actions.player_movement = None;
-    }
+            // Driving
+            Action::<SteerLeft>::new()
+            Bindings [
+                Binding(KeyCode::KeyA)
+                --
+                Binding(KeyCode::ArrowLeft)
+            ]
+            --
+            Action::<SteerRight>::new()
+            Bindings [
+                Binding(KeyCode::KeyD)
+                --
+                Binding(KeyCode::ArrowRight)
+            ]
+            --
+            Action::<Accelerate>::new()
+            ~Press::new(1.0)
+            Bindings [
+                Binding(KeyCode::KeyW)
+                --
+                Binding(KeyCode::ArrowUp)
+            ]
+            --
+            Action::<Brake>::new()
+            ~Press::new(1.0)
+            Bindings [
+                Binding(KeyCode::KeyS)
+                --
+                Binding(KeyCode::ArrowDown)
+            ]
+            --
+            Action::<ActivatePowerup>::new()
+            ~Press::new(1.0)
+            Bindings [
+                Binding(KeyCode::Space)
+            ]
+        ]
+    });
+}
 
-    Ok(())
+fn read_vehicle_actions(
+    steer_left: Single<&Action<SteerLeft>>,
+    steer_right: Single<&Action<SteerRight>>,
+    accelerate: Single<&Action<Accelerate>>,
+    brake: Single<&Action<Brake>>,
+    powerup: Single<&Action<ActivatePowerup>>,
+    mut controls: ResMut<VehicleControls>,
+) {
+    controls.steering = (***steer_right - ***steer_left).clamp(-1.0, 1.0);
+    controls.accelerate = ***accelerate;
+    controls.brake = ***brake;
+    controls.activate_powerup = ***powerup;
+
+    // info!(
+    //     "steering={}, accelerate={}, brake={}",
+    //     controls.steering,
+    //     controls.accelerate,
+    //     controls.brake,
+    // );
 }

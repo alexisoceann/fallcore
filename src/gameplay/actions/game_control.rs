@@ -1,31 +1,41 @@
-use bevy::prelude::{ButtonInput, KeyCode, Res};
+use bevy::prelude::*;
+use bevy_enhanced_input::prelude::*;
 
-pub enum GameControl {
-    Up,
-    Down,
-    Left,
-    Right,
-}
+#[derive(Component, Default, Clone)]
+pub struct PlayerInput;
 
-impl GameControl {
-    pub fn pressed(&self, keyboard_input: &Res<ButtonInput<KeyCode>>) -> bool {
-        match self {
-            GameControl::Up => {
-                keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown)
-            }
-            GameControl::Down => {
-                keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp)
-            }
-            GameControl::Left => {
-                keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft)
-            }
-            GameControl::Right => {
-                keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight)
-            }
-        }
-    }
-}
+#[derive(InputAction)]
+#[action_output(f32)]
+pub struct MoveUp;
 
-pub fn get_movement(control: GameControl, input: &Res<ButtonInput<KeyCode>>) -> f32 {
-    if control.pressed(input) { 1.0 } else { 0.0 }
-}
+#[derive(InputAction)]
+#[action_output(f32)]
+pub struct MoveDown;
+
+#[derive(InputAction)]
+#[action_output(f32)]
+pub struct MoveLeft;
+
+#[derive(InputAction)]
+#[action_output(f32)]
+pub struct MoveRight;
+
+#[derive(InputAction)]
+#[action_output(f32)]
+pub struct SteerLeft;
+
+#[derive(InputAction)]
+#[action_output(f32)]
+pub struct SteerRight;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct Accelerate;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct Brake;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct ActivatePowerup;
