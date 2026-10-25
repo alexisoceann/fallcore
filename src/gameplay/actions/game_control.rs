@@ -11,10 +11,10 @@ impl GameControl {
     pub fn pressed(&self, keyboard_input: &Res<ButtonInput<KeyCode>>) -> bool {
         match self {
             GameControl::Up => {
-                keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp)
+                keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown)
             }
             GameControl::Down => {
-                keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown)
+                keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp)
             }
             GameControl::Left => {
                 keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft)
