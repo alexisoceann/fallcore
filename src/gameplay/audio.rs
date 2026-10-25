@@ -1,5 +1,5 @@
 use crate::GameState;
-use crate::gameplay::actions::{VehicleControls, set_movement_actions};
+use crate::gameplay::actions::VehicleControls;
 use crate::gameplay::player::Player;
 use crate::loading::AudioAssets;
 use bevy::prelude::*;
@@ -27,11 +27,7 @@ impl Plugin for InternalAudioPlugin {
             .add_systems(OnEnter(GameState::Playing), start_audio)
             .add_systems(
                 Update,
-                (
-                    setup_spatial_audio,
-                    control_flying_sound.after(set_movement_actions),
-                )
-                    .run_if(in_state(GameState::Playing)),
+                (setup_spatial_audio, control_flying_sound).run_if(in_state(GameState::Playing)),
             )
             .add_systems(OnExit(GameState::Playing), stop_audio);
     }
@@ -90,16 +86,17 @@ fn setup_spatial_audio(
 }
 
 fn control_flying_sound(
-    actions: Res<VehicleControls>,
+    vehicles: Query<&VehicleControls>,
     audio: Res<FlyingAudio>,
     mut audio_instances: ResMut<Assets<AudioInstance>>,
 ) {
+    let any_throttle = vehicles.iter().any(|v| v.accelerate || v.brake);
     if let Some(mut instance) = audio_instances.get_mut(&audio.0) {
         match instance.state() {
-            PlaybackState::Paused { .. } if actions.player_movement.is_some() => {
+            PlaybackState::Paused { .. } if any_throttle => {
                 instance.resume(AudioTween::default());
             }
-            PlaybackState::Playing { .. } if actions.player_movement.is_none() => {
+            PlaybackState::Playing { .. } if !any_throttle => {
                 instance.pause(AudioTween::default());
             }
             _ => {}

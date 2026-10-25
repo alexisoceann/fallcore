@@ -1,24 +1,11 @@
 use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
 
+/// Input context for one player's vehicle. Each joined player gets their own
+/// entity with this component, bound to one of the fixed keyboard schemes
+/// (see `actions::player_input_scene`).
 #[derive(Component, Default, Clone)]
 pub struct PlayerInput;
-
-#[derive(InputAction)]
-#[action_output(f32)]
-pub struct MoveUp;
-
-#[derive(InputAction)]
-#[action_output(f32)]
-pub struct MoveDown;
-
-#[derive(InputAction)]
-#[action_output(f32)]
-pub struct MoveLeft;
-
-#[derive(InputAction)]
-#[action_output(f32)]
-pub struct MoveRight;
 
 #[derive(InputAction)]
 #[action_output(f32)]

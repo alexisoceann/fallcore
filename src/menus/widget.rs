@@ -1,3 +1,4 @@
+use bevy::input_focus::tab_navigation::{TabGroup, TabIndex};
 use bevy::picking::hover::Hovered;
 use bevy::prelude::*;
 use bevy::ui_widgets::Button;
@@ -45,7 +46,9 @@ fn update_button_colors(
     }
 }
 
-/// A full-screen column that centers its children. The base node for every menu screen.
+/// A full-screen column that centers its children. The base node for every
+/// menu screen. `TabGroup` makes its buttons keyboard-tabbable (Tab/Shift+Tab,
+/// Enter/Space to activate) as a self-contained set.
 pub(super) fn root() -> impl Scene {
     bsn! {
         Node {
@@ -56,6 +59,7 @@ pub(super) fn root() -> impl Scene {
             justify_content: JustifyContent::Center,
             row_gap: Val::Px(16.0),
         }
+        TabGroup::default()
     }
 }
 
@@ -86,28 +90,7 @@ pub(super) fn button<A: Component + Clone + Unpin>(
         }
         BackgroundColor(background)
         ButtonColors { normal: background }
-        action
-        Children [
-            Text(text)
-            TextFont { font_size: FontSize::Px(28.0) }
-            TextColor(TEXT_COLOR)
-        ]
-    }
-}
-
-/// A small square button, e.g. the "-"/"+" of a stepper.
-pub(super) fn button_small<A: Component + Clone + Unpin>(text: String, action: A) -> impl Scene {
-    bsn! {
-        Button
-        Hovered
-        Node {
-            width: Val::Px(50.0),
-            height: Val::Px(50.0),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-        }
-        BackgroundColor(NORMAL_BUTTON)
-        ButtonColors::default()
+        TabIndex(0)
         action
         Children [
             Text(text)
@@ -138,6 +121,7 @@ pub(super) fn option_button<A: Component + Clone + Unpin>(
         }
         BackgroundColor(background)
         ButtonColors { normal: background }
+        TabIndex(0)
         action
         Children [
             Node {
@@ -149,6 +133,77 @@ pub(super) fn option_button<A: Component + Clone + Unpin>(
             Text(name)
             TextFont { font_size: FontSize::Px(22.0) }
             TextColor(TEXT_COLOR)
+        ]
+    }
+}
+
+/// A non-interactive roster tile: a color swatch over a name, with a row of
+/// small "selection cursor" pips underneath — one per player/preview
+/// currently pointing at it. Used by the character-select and kart-select
+/// screens, whose tiles are driven by keyboard polling rather than mouse
+/// clicks. Each pip is labeled ("P1", "P2", ...) rather than relying
+/// on color alone, since color is the only thing distinguishing players.
+pub(super) fn display_tile(
+    name: String,
+    swatch: Color,
+    background: Color,
+    cursor_pips: Vec<(Color, String)>,
+) -> impl Scene {
+    let cursors: Vec<_> = cursor_pips
+        .into_iter()
+        .map(|(color, label)| pip(color, label))
+        .collect();
+
+    bsn! {
+        Node {
+            width: Val::Px(160.0),
+            height: Val::Px(140.0),
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            row_gap: Val::Px(8.0),
+        }
+        BackgroundColor(background)
+        Children [
+            Node {
+                width: Val::Px(64.0),
+                height: Val::Px(64.0),
+            }
+            BackgroundColor(swatch)
+            --
+            Text(name)
+            TextFont { font_size: FontSize::Px(22.0) }
+            TextColor(TEXT_COLOR)
+            TextLayout::justify(Justify::Center)
+            --
+            Node {
+                flex_direction: FlexDirection::Row,
+                column_gap: Val::Px(4.0),
+                height: Val::Px(18.0),
+            }
+            Children [
+                { cursors }
+            ]
+        ]
+    }
+}
+
+/// One labeled "selection cursor" pip (see [`display_tile`]). `label` is
+/// typically "P1".."P4" for a joined player, or empty for an unjoined
+/// source that's merely previewing.
+fn pip(color: Color, label: String) -> impl Scene {
+    bsn! {
+        Node {
+            width: Val::Px(28.0),
+            height: Val::Px(18.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+        }
+        BackgroundColor(color)
+        Children [
+            Text(label)
+            TextFont { font_size: FontSize::Px(11.0) }
+            TextColor(Color::BLACK)
         ]
     }
 }
